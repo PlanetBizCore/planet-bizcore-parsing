@@ -1,0 +1,50 @@
+SALES CONVERSATION PSYCHOLOGY - QUICK REFERENCE
+
+DISCOVERY PHASE PATTERNS:
+- Open-ended questions reveal decision criteria
+- Budget discussions trigger defensive responses  
+- Timeline pressure indicates internal urgency
+- Multiple stakeholder mentions suggest complex approval process
+
+TRUST BUILDING INDICATORS:
+- Client shares challenges unprompted
+- Questions about company background/experience
+- Requests for references or case studies
+- Discussion of implementation concerns
+
+BUYING SIGNALS:
+- Specific implementation questions
+- Internal process/timeline discussions
+- ROI calculation requests
+- Team introduction offers
+
+RESISTANCE PATTERNS:
+- Generic objections (price, timing, features)
+- Comparison shopping behavior
+- Decision delay tactics
+- Authority figure deflection
+
+AUTOMATION OPPORTUNITIES:
+- Lead qualification scoring
+- Objection response suggestions
+- Follow-up timing optimization
+- Proposal customization triggers
+
+AI TRAINING PRIORITIES:
+1. Question formulation for discovery
+2. Buying signal recognition
+3. Objection handling frameworks
+4. Next step recommendation logic
+
+PSYCHOLOGICAL FRAMEWORKS:
+- BANT qualification (Budget, Authority, Need, Timeline)
+- Challenger Sale methodology
+- Consultative selling approach
+- Solution-focused conversation flow
+
+BUSINESS LOGIC:
+- Assumption: Clients buy solutions to problems
+- Process: Identify problems before presenting solutions
+- Outcome: Aligned proposal with high acceptance probability
+
+This document demonstrates typical sales training content that would be processed for AI agent development in client-facing scenarios.

@@ -1,0 +1,828 @@
+import mammoth from 'mammoth';
+import * as pdfParse from 'pdf-parse';
+import { ParsedDocument, ParsedSection, SectionType, DocumentLineage, AISummary, DocumentMetadata, BusinessDomain, PsychologicalFramework, KnowledgeCategory, ActionItem, DecisionPoint } from './types';
+import { v4 as uuidv4 } from 'uuid';
+
+export class DocumentParser {
+  
+  static async parseFile(file: File, authorOverride?: string): Promise<ParsedDocument> {
+    const fileType = this.getFileType(file.name);
+    let rawContent = '';
+
+    try {
+      switch (fileType) {
+        case 'md':
+        case 'txt':
+          rawContent = await this.parseTextFile(file);
+          break;
+        case 'pdf':
+          rawContent = await this.parsePdfFile(file);
+          break;
+        case 'doc':
+        case 'docx':
+          rawContent = await this.parseDocFile(file);
+          break;
+        default:
+          throw new Error(`Unsupported file type: ${fileType}`);
+      }
+
+      const documentId = uuidv4();
+      const lineage = this.createDocumentLineage(file, rawContent, authorOverride);
+      const sections = this.extractSections(rawContent, fileType, documentId);
+      const tags = this.extractTags(rawContent, sections);
+      const metadata = this.extractMetadata(rawContent, file.name);
+      const aiSummary = this.generateAISummary(rawContent, sections, metadata);
+
+      return {
+        id: documentId,
+        filename: file.name,
+        file_type: fileType,
+        upload_date: new Date().toISOString(),
+        file_size: file.size,
+        raw_content: rawContent,
+        parsed_sections: sections,
+        tags,
+        metadata,
+        processing_status: 'completed',
+        lineage,
+        ai_summary: aiSummary,
+        cross_references: [], // Will be populated by post-processing
+        version_history: [{
+          version_id: uuidv4(),
+          timestamp: new Date().toISOString(),
+          changes_summary: 'Initial document creation',
+          changed_by: authorOverride || 'system',
+          change_type: 'content'
+        }]
+      };
+
+    } catch (error) {
+      return {
+        id: uuidv4(),
+        filename: file.name,
+        file_type: fileType,
+        upload_date: new Date().toISOString(),
+        file_size: file.size,
+        raw_content: '',
+        parsed_sections: [],
+        tags: [],
+        metadata: this.getDefaultMetadata(),
+        processing_status: 'error',
+        error_message: error instanceof Error ? error.message : 'Unknown error',
+        lineage: this.createDefaultLineage(file),
+        ai_summary: this.getDefaultAISummary(),
+        cross_references: [],
+        version_history: []
+      };
+    }
+  }
+
+  private static createDocumentLineage(file: File, content: string, authorOverride?: string): DocumentLineage {
+    const now = new Date().toISOString();
+    
+    // Extract metadata from content if available
+    const author = authorOverride || this.extractAuthorFromContent(content) || 'Unknown';
+    const creationDate = this.extractCreationDateFromContent(content) || now;
+    
+    return {
+      original_author: author,
+      creation_date: creationDate,
+      last_modified: now,
+      source_system: 'PBC-parsing-app',
+      document_series: this.extractDocumentSeries(file.name),
+      revision_number: 1,
+      approval_status: 'draft',
+      stakeholders: this.identifyStakeholders(content),
+      parent_document_id: undefined,
+      child_document_ids: []
+    };
+  }
+
+  private static createDefaultLineage(file: File): DocumentLineage {
+    const now = new Date().toISOString();
+    return {
+      original_author: 'Unknown',
+      creation_date: now,
+      last_modified: now,
+      source_system: 'PBC-parsing-app',
+      revision_number: 1,
+      approval_status: 'draft',
+      stakeholders: [],
+      parent_document_id: undefined,
+      child_document_ids: []
+    };
+  }
+
+  private static generateAISummary(content: string, sections: ParsedSection[], metadata: DocumentMetadata): AISummary {
+    const tokenCount = this.estimateTokenCount(content);
+    const complexity = this.calculateComplexity(content, sections);
+    
+    return {
+      executive_summary: this.generateExecutiveSummary(content, sections),
+      key_concepts: this.extractKeyConcepts(content, sections),
+      psychological_patterns: this.extractPsychologicalPatterns(content),
+      business_logic_complexity: complexity,
+      token_efficiency_score: this.calculateTokenEfficiency(content, sections),
+      recommended_gpt_model: this.recommendGPTModel(tokenCount, complexity),
+      context_window_requirement: Math.min(tokenCount * 1.2, 4000) // Buffer for context
+    };
+  }
+
+  private static getDefaultAISummary(): AISummary {
+    return {
+      executive_summary: 'Document processing failed',
+      key_concepts: [],
+      psychological_patterns: [],
+      business_logic_complexity: 'simple',
+      token_efficiency_score: 0,
+      recommended_gpt_model: 'gpt-3.5',
+      context_window_requirement: 0
+    };
+  }
+
+  private static extractSections(content: string, fileType: string, documentId: string): ParsedSection[] {
+    const sections: ParsedSection[] = [];
+    let sectionIndex = 0;
+
+    if (fileType === 'md') {
+      // Enhanced Markdown parsing with psychological and business logic extraction
+      const lines = content.split('\n');
+      let currentSection: Partial<ParsedSection> | null = null;
+      let currentContent: string[] = [];
+
+      for (const line of lines) {
+        if (line.match(/^#{1,6}\s/)) {
+          // Save previous section
+          if (currentSection && currentContent.length > 0) {
+            const sectionContent = currentContent.join('\n').trim();
+            sections.push(this.createEnhancedSection(
+              currentSection, 
+              sectionContent, 
+              sectionIndex++, 
+              documentId
+            ));
+          }
+
+          // Start new section
+          currentSection = {
+            id: uuidv4(),
+            document_id: documentId,
+            section_type: this.determineSectionType(line),
+            title: line.replace(/^#+\s/, ''),
+            created_at: new Date().toISOString()
+          };
+          currentContent = [];
+        } else {
+          currentContent.push(line);
+        }
+      }
+
+      // Add final section
+      if (currentSection && currentContent.length > 0) {
+        const sectionContent = currentContent.join('\n').trim();
+        sections.push(this.createEnhancedSection(
+          currentSection, 
+          sectionContent, 
+          sectionIndex++, 
+          documentId
+        ));
+      }
+    } else {
+      // Enhanced parsing for other file types
+      const chunks = this.intelligentChunking(content);
+      
+      chunks.forEach((chunk, index) => {
+        sections.push(this.createEnhancedSection(
+          {
+            id: uuidv4(),
+            document_id: documentId,
+            section_type: this.determineSectionType(chunk),
+            created_at: new Date().toISOString()
+          },
+          chunk.trim(),
+          index,
+          documentId
+        ));
+      });
+    }
+
+    return sections;
+  }
+
+  private static createEnhancedSection(
+    baseSection: Partial<ParsedSection>, 
+    content: string, 
+    orderIndex: number, 
+    documentId: string
+  ): ParsedSection {
+    const tokenCount = this.estimateTokenCount(content);
+    const complexityScore = this.calculateSectionComplexity(content);
+    
+    return {
+      id: baseSection.id!,
+      document_id: documentId,
+      section_type: baseSection.section_type!,
+      title: baseSection.title,
+      content,
+      order_index: orderIndex,
+      psychological_tags: this.extractPsychologicalTags(content),
+      workflow_tags: this.extractWorkflowTags(content),
+      business_logic_tags: this.extractBusinessLogicTags(content),
+      confidence_score: this.calculateConfidenceScore(content, baseSection.section_type!),
+      created_at: baseSection.created_at!,
+      token_count: tokenCount,
+      complexity_score: complexityScore,
+      dependency_sections: this.findDependencySections(content),
+      action_items: this.extractActionItems(content),
+      decision_points: this.extractDecisionPoints(content),
+      knowledge_category: this.categorizeKnowledge(content, baseSection.section_type!)
+    };
+  }
+
+  private static intelligentChunking(content: string): string[] {
+    // Enhanced chunking algorithm that preserves logical boundaries
+    const paragraphs = content.split(/\n\s*\n/).filter(p => p.trim().length > 0);
+    const chunks: string[] = [];
+    let currentChunk = '';
+    const maxChunkSize = 1000; // characters
+
+    for (const paragraph of paragraphs) {
+      if (currentChunk.length + paragraph.length > maxChunkSize && currentChunk.length > 0) {
+        chunks.push(currentChunk.trim());
+        currentChunk = paragraph;
+      } else {
+        currentChunk += (currentChunk ? '\n\n' : '') + paragraph;
+      }
+    }
+
+    if (currentChunk.trim()) {
+      chunks.push(currentChunk.trim());
+    }
+
+    return chunks;
+  }
+
+  // Enhanced extraction methods with psychological and business logic focus
+  private static extractPsychologicalTags(content: string): string[] {
+    const tags = new Set<string>();
+    const lowerContent = content.toLowerCase();
+    
+    const psychPatterns = {
+      'resistance_handling': ['resistance', 'objection', 'pushback', 'reluctance'],
+      'motivation': ['motivate', 'inspire', 'drive', 'encourage'],
+      'decision_making': ['decision', 'choice', 'option', 'evaluate'],
+      'trust_building': ['trust', 'rapport', 'relationship', 'credibility'],
+      'influence': ['influence', 'persuade', 'convince', 'sway'],
+      'emotional_intelligence': ['emotion', 'feeling', 'empathy', 'understanding'],
+      'communication_styles': ['communicate', 'style', 'approach', 'tone'],
+      'cognitive_bias': ['bias', 'assumption', 'perception', 'mindset']
+    };
+
+    Object.entries(psychPatterns).forEach(([tag, keywords]) => {
+      if (keywords.some(keyword => lowerContent.includes(keyword))) {
+        tags.add(tag);
+      }
+    });
+
+    return Array.from(tags);
+  }
+
+  private static extractWorkflowTags(content: string): string[] {
+    const tags = new Set<string>();
+    const lowerContent = content.toLowerCase();
+    
+    const workflowPatterns = {
+      'sequential_process': ['step', 'then', 'next', 'after'],
+      'decision_tree': ['if', 'then', 'else', 'when'],
+      'checklist': ['check', 'verify', 'ensure', 'confirm'],
+      'automation_ready': ['automate', 'systematic', 'repeatable'],
+      'manual_intervention': ['manual', 'human', 'review', 'judgment'],
+      'escalation': ['escalate', 'supervisor', 'manager', 'expert']
+    };
+
+    Object.entries(workflowPatterns).forEach(([tag, keywords]) => {
+      if (keywords.some(keyword => lowerContent.includes(keyword))) {
+        tags.add(tag);
+      }
+    });
+
+    return Array.from(tags);
+  }
+
+  private static extractBusinessLogicTags(content: string): string[] {
+    const tags = new Set<string>();
+    const lowerContent = content.toLowerCase();
+    
+    const businessPatterns = {
+      'calculation': ['calculate', 'formula', 'equation', 'math'],
+      'rule_based': ['rule', 'policy', 'guideline', 'standard'],
+      'exception_handling': ['exception', 'special case', 'unusual'],
+      'compliance': ['comply', 'regulation', 'requirement', 'must'],
+      'optimization': ['optimize', 'improve', 'efficiency', 'better'],
+      'risk_management': ['risk', 'danger', 'caution', 'warning']
+    };
+
+    Object.entries(businessPatterns).forEach(([tag, keywords]) => {
+      if (keywords.some(keyword => lowerContent.includes(keyword))) {
+        tags.add(tag);
+      }
+    });
+
+    return Array.from(tags);
+  }
+
+  private static extractActionItems(content: string): ActionItem[] {
+    const actionItems: ActionItem[] = [];
+    const lines = content.split('\n');
+    
+    lines.forEach(line => {
+      const lowerLine = line.toLowerCase();
+      if (lowerLine.includes('todo') || lowerLine.includes('action') || 
+          lowerLine.includes('next step') || lowerLine.match(/^\s*[-*]\s/)) {
+        
+        const priority = this.determinePriority(line);
+        actionItems.push({
+          id: uuidv4(),
+          description: line.trim(),
+          priority,
+          estimated_effort: this.estimateEffort(line),
+          prerequisites: this.extractPrerequisites(line),
+          stakeholder: this.identifyStakeholder(line)
+        });
+      }
+    });
+
+    return actionItems;
+  }
+
+  private static extractDecisionPoints(content: string): DecisionPoint[] {
+    const decisionPoints: DecisionPoint[] = [];
+    const lines = content.split('\n');
+    
+    lines.forEach(line => {
+      const lowerLine = line.toLowerCase();
+      if (lowerLine.includes('decide') || lowerLine.includes('choose') || 
+          lowerLine.includes('option') || lowerLine.includes('either')) {
+        
+        decisionPoints.push({
+          id: uuidv4(),
+          question: line.trim(),
+          options: this.extractOptions(content, line),
+          criteria: this.extractCriteria(content, line),
+          psychological_considerations: this.extractPsychologicalConsiderations(content, line),
+          recommended_approach: this.determineRecommendedApproach(content, line)
+        });
+      }
+    });
+
+    return decisionPoints;
+  }
+
+  private static categorizeKnowledge(content: string, sectionType: SectionType): KnowledgeCategory {
+    const primaryDomain = this.extractBusinessDomain(content);
+    const psychFramework = this.extractPsychologicalFramework(content);
+    
+    return {
+      primary_domain: primaryDomain,
+      secondary_domains: this.extractSecondaryDomains(content),
+      psychological_framework: psychFramework,
+      automation_potential: this.assessAutomationPotential(content, sectionType),
+      client_facing: this.isClientFacing(content),
+      training_priority: this.calculateTrainingPriority(content, sectionType)
+    };
+  }
+
+  // Utility methods for enhanced extraction
+  private static estimateTokenCount(text: string): number {
+    return Math.ceil(text.length / 4); // Rough estimation
+  }
+
+  private static calculateComplexity(content: string, sections: ParsedSection[]): 'simple' | 'moderate' | 'complex' | 'expert' {
+    const avgSectionLength = content.length / sections.length;
+    const hasDecisionTrees = sections.some(s => s.section_type === 'decision_tree');
+    const hasCalculations = sections.some(s => s.section_type === 'calculation');
+    
+    if (avgSectionLength > 1000 || hasDecisionTrees || hasCalculations) return 'expert';
+    if (avgSectionLength > 500 || sections.length > 10) return 'complex';
+    if (avgSectionLength > 200 || sections.length > 5) return 'moderate';
+    return 'simple';
+  }
+
+  private static calculateTokenEfficiency(content: string, sections: ParsedSection[]): number {
+    // Higher score = more token efficient for AI processing
+    const redundancy = this.calculateRedundancy(content);
+    const structure = sections.length > 0 ? 80 : 20;
+    const clarity = this.calculateClarity(content);
+    
+    return Math.min(100, Math.floor((100 - redundancy) * 0.4 + structure * 0.3 + clarity * 0.3));
+  }
+
+  private static recommendGPTModel(tokenCount: number, complexity: string): 'gpt-3.5' | 'gpt-4' | 'gpt-4-turbo' | 'custom' {
+    if (complexity === 'expert' || tokenCount > 3000) return 'gpt-4-turbo';
+    if (complexity === 'complex' || tokenCount > 1500) return 'gpt-4';
+    return 'gpt-3.5';
+  }
+
+  // Continue with existing methods but enhanced...
+  private static getFileType(filename: string): 'md' | 'pdf' | 'doc' | 'docx' | 'txt' | 'chat' {
+    const ext = filename.toLowerCase().split('.').pop();
+    switch (ext) {
+      case 'md': case 'markdown': return 'md';
+      case 'pdf': return 'pdf';
+      case 'doc': return 'doc';
+      case 'docx': return 'docx';
+      case 'txt': return 'txt';
+      default: return 'txt';
+    }
+  }
+
+  private static async parseTextFile(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target?.result as string);
+      reader.onerror = (e) => reject(new Error('Failed to read text file'));
+      reader.readAsText(file);
+    });
+  }
+
+  private static async parsePdfFile(file: File): Promise<string> {
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const data = await pdfParse.default(buffer);
+    return data.text;
+  }
+
+  private static async parseDocFile(file: File): Promise<string> {
+    const arrayBuffer = await file.arrayBuffer();
+    const result = await mammoth.extractRawText({ arrayBuffer });
+    return result.value;
+  }
+
+  private static determineSectionType(text: string): SectionType {
+    const lowerText = text.toLowerCase();
+    
+    // Enhanced section type detection
+    if (lowerText.includes('psychology') || lowerText.includes('mindset') || 
+        lowerText.includes('thinking') || lowerText.includes('perspective')) {
+      return 'psychology';
+    }
+    
+    if (lowerText.includes('objection') || lowerText.includes('resistance')) {
+      return 'objection_handling';
+    }
+    
+    if (lowerText.includes('best practice') || lowerText.includes('recommendation')) {
+      return 'best_practice';
+    }
+    
+    if (lowerText.includes('template') || lowerText.includes('format')) {
+      return 'template';
+    }
+    
+    if (lowerText.includes('script') || lowerText.includes('say this')) {
+      return 'script';
+    }
+    
+    if (lowerText.includes('case study') || lowerText.includes('example')) {
+      return 'case_study';
+    }
+    
+    if (lowerText.includes('troubleshoot') || lowerText.includes('problem')) {
+      return 'troubleshooting';
+    }
+    
+    // Continue with existing logic...
+    if (lowerText.includes('step') || lowerText.includes('process') || 
+        lowerText.includes('workflow') || lowerText.includes('procedure')) {
+      return 'workflow';
+    }
+    
+    if (lowerText.includes('calculate') || lowerText.includes('formula') || 
+        lowerText.includes('math') || /\d+[+\-*/]\d+/.test(lowerText)) {
+      return 'calculation';
+    }
+    
+    if (lowerText.includes('principle') || lowerText.includes('rule') || 
+        lowerText.includes('guideline') || lowerText.includes('framework')) {
+      return 'principle';
+    }
+    
+    if (text.match(/^#{1,6}\s/) || text.length < 100) {
+      return 'heading';
+    }
+    
+    return 'narrative';
+  }
+
+  // Placeholder implementations for new methods (to be expanded)
+  private static extractAuthorFromContent(content: string): string | null {
+    const authorMatch = content.match(/author:\s*(.+)/i) || content.match(/by:\s*(.+)/i);
+    return authorMatch ? authorMatch[1].trim() : null;
+  }
+
+  private static extractCreationDateFromContent(content: string): string | null {
+    const dateMatch = content.match(/date:\s*(.+)/i) || content.match(/created:\s*(.+)/i);
+    return dateMatch ? new Date(dateMatch[1].trim()).toISOString() : null;
+  }
+
+  private static extractDocumentSeries(filename: string): string | undefined {
+    const seriesMatch = filename.match(/^([^0-9]+)/);
+    return seriesMatch ? seriesMatch[1].replace(/[-_]/g, ' ').trim() : undefined;
+  }
+
+  private static identifyStakeholders(content: string): string[] {
+    const stakeholders = new Set<string>();
+    const names = ['john', 'tony', 'mueller', 'medina'];
+    const lowerContent = content.toLowerCase();
+    
+    names.forEach(name => {
+      if (lowerContent.includes(name)) {
+        stakeholders.add(name);
+      }
+    });
+    
+    return Array.from(stakeholders);
+  }
+
+  private static generateExecutiveSummary(content: string, sections: ParsedSection[]): string {
+    const firstSection = sections.find(s => s.section_type === 'heading') || sections[0];
+    return firstSection ? firstSection.content.substring(0, 200) + '...' : 'No summary available';
+  }
+
+  private static extractKeyConcepts(content: string, sections: ParsedSection[]): string[] {
+    const concepts = new Set<string>();
+    sections.forEach(section => {
+      if (section.title) concepts.add(section.title);
+      section.business_logic_tags.forEach(tag => concepts.add(tag));
+    });
+    return Array.from(concepts).slice(0, 10);
+  }
+
+  private static extractPsychologicalPatterns(content: string): string[] {
+    return this.extractPsychologicalTags(content);
+  }
+
+  private static calculateSectionComplexity(content: string): number {
+    let complexity = 1;
+    if (content.length > 500) complexity += 2;
+    if (content.includes('if') && content.includes('then')) complexity += 2;
+    if (content.match(/\d+%|\$\d+/)) complexity += 1;
+    return Math.min(10, complexity);
+  }
+
+  private static findDependencySections(content: string): string[] {
+    // Look for references to other sections
+    const refs = content.match(/see\s+section\s+\d+|refer\s+to\s+\w+/gi);
+    return refs ? refs.slice(0, 5) : [];
+  }
+
+  private static calculateConfidenceScore(content: string, sectionType: SectionType): number {
+    let score = 50; // base score
+    if (content.length > 100) score += 20;
+    if (sectionType !== 'unknown') score += 20;
+    if (content.includes('example') || content.includes('case')) score += 10;
+    return Math.min(100, score);
+  }
+
+  // Additional helper methods with placeholder implementations
+  private static determinePriority(line: string): 'low' | 'medium' | 'high' | 'critical' {
+    const lowerLine = line.toLowerCase();
+    if (lowerLine.includes('urgent') || lowerLine.includes('critical')) return 'critical';
+    if (lowerLine.includes('important') || lowerLine.includes('priority')) return 'high';
+    if (lowerLine.includes('optional') || lowerLine.includes('nice')) return 'low';
+    return 'medium';
+  }
+
+  private static estimateEffort(line: string): string {
+    if (line.length > 100) return 'high';
+    if (line.length > 50) return 'medium';
+    return 'low';
+  }
+
+  private static extractPrerequisites(line: string): string[] {
+    return []; // Placeholder
+  }
+
+  private static identifyStakeholder(line: string): string {
+    const lowerLine = line.toLowerCase();
+    if (lowerLine.includes('john')) return 'John';
+    if (lowerLine.includes('tony')) return 'Tony';
+    return 'Team';
+  }
+
+  private static extractOptions(content: string, line: string): string[] {
+    return []; // Placeholder
+  }
+
+  private static extractCriteria(content: string, line: string): string[] {
+    return []; // Placeholder
+  }
+
+  private static extractPsychologicalConsiderations(content: string, line: string): string[] {
+    return []; // Placeholder
+  }
+
+  private static determineRecommendedApproach(content: string, line: string): string {
+    return 'To be determined'; // Placeholder
+  }
+
+  private static extractBusinessDomain(content: string): BusinessDomain {
+    const lowerContent = content.toLowerCase();
+    
+    if (lowerContent.includes('sales') || lowerContent.includes('selling')) return 'sales';
+    if (lowerContent.includes('marketing') || lowerContent.includes('campaign')) return 'marketing';
+    if (lowerContent.includes('operations') || lowerContent.includes('process')) return 'operations';
+    if (lowerContent.includes('finance') || lowerContent.includes('budget')) return 'finance';
+    if (lowerContent.includes('strategy') || lowerContent.includes('planning')) return 'strategy';
+    if (lowerContent.includes('customer') || lowerContent.includes('client')) return 'customer_success';
+    if (lowerContent.includes('leadership') || lowerContent.includes('manage')) return 'leadership';
+    if (lowerContent.includes('communication') || lowerContent.includes('message')) return 'communication';
+    
+    return 'operations'; // default
+  }
+
+  private static extractPsychologicalFramework(content: string): PsychologicalFramework {
+    const lowerContent = content.toLowerCase();
+    
+    if (lowerContent.includes('resistance') || lowerContent.includes('objection')) return 'resistance_handling';
+    if (lowerContent.includes('motivation') || lowerContent.includes('inspire')) return 'motivation';
+    if (lowerContent.includes('decision') || lowerContent.includes('choice')) return 'decision_making';
+    if (lowerContent.includes('trust') || lowerContent.includes('rapport')) return 'trust_building';
+    if (lowerContent.includes('change') || lowerContent.includes('transition')) return 'change_management';
+    if (lowerContent.includes('influence') || lowerContent.includes('persuade')) return 'influence';
+    if (lowerContent.includes('conflict') || lowerContent.includes('disagree')) return 'conflict_resolution';
+    if (lowerContent.includes('emotion') || lowerContent.includes('feeling')) return 'emotional_intelligence';
+    
+    return 'communication_styles'; // default
+  }
+
+  private static extractSecondaryDomains(content: string): BusinessDomain[] {
+    const domains: BusinessDomain[] = [];
+    const lowerContent = content.toLowerCase();
+    
+    const domainKeywords = {
+      'sales': ['sell', 'revenue', 'deal'],
+      'marketing': ['market', 'brand', 'campaign'],
+      'customer_success': ['customer', 'client', 'support'],
+      'operations': ['process', 'system', 'workflow'],
+      'strategy': ['strategy', 'plan', 'vision']
+    };
+
+    Object.entries(domainKeywords).forEach(([domain, keywords]) => {
+      if (keywords.some(keyword => lowerContent.includes(keyword))) {
+        domains.push(domain as BusinessDomain);
+      }
+    });
+
+    return domains.slice(0, 3); // Max 3 secondary domains
+  }
+
+  private static assessAutomationPotential(content: string, sectionType: SectionType): 'low' | 'medium' | 'high' {
+    if (sectionType === 'calculation' || sectionType === 'checklist') return 'high';
+    if (sectionType === 'workflow' || sectionType === 'step') return 'medium';
+    if (sectionType === 'psychology' || sectionType === 'narrative') return 'low';
+    return 'medium';
+  }
+
+  private static isClientFacing(content: string): boolean {
+    const lowerContent = content.toLowerCase();
+    return lowerContent.includes('client') || lowerContent.includes('customer') || 
+           lowerContent.includes('public') || lowerContent.includes('external');
+  }
+
+  private static calculateTrainingPriority(content: string, sectionType: SectionType): number {
+    let priority = 5; // base
+    if (sectionType === 'psychology') priority += 3;
+    if (sectionType === 'workflow') priority += 2;
+    if (content.includes('important') || content.includes('critical')) priority += 2;
+    if (content.length > 1000) priority += 1;
+    return Math.min(10, priority);
+  }
+
+  private static calculateRedundancy(content: string): number {
+    const words = content.toLowerCase().split(/\s+/);
+    const uniqueWords = new Set(words);
+    return Math.floor((1 - uniqueWords.size / words.length) * 100);
+  }
+
+  private static calculateClarity(content: string): number {
+    let clarity = 50;
+    if (content.includes('step') || content.includes('first')) clarity += 20;
+    if (content.includes('example') || content.includes('for instance')) clarity += 15;
+    if (content.match(/\d+\./)) clarity += 15; // numbered lists
+    return Math.min(100, clarity);
+  }
+
+  private static extractTags(content: string, sections: ParsedSection[]): string[] {
+    const tags = new Set<string>();
+    const lowerContent = content.toLowerCase();
+    
+    // Business domain tags
+    const domains = ['crm', 'sales', 'marketing', 'operations', 'finance', 'hr', 'strategy', 'customer_success'];
+    domains.forEach(domain => {
+      if (lowerContent.includes(domain)) tags.add(domain);
+    });
+    
+    // Psychological tags
+    sections.forEach(section => {
+      section.psychological_tags.forEach(tag => tags.add(tag));
+      section.workflow_tags.forEach(tag => tags.add(tag));
+      section.business_logic_tags.forEach(tag => tags.add(tag));
+    });
+    
+    // Complexity tags
+    if (lowerContent.includes('advanced') || lowerContent.includes('complex')) {
+      tags.add('advanced');
+    } else if (lowerContent.includes('basic') || lowerContent.includes('simple')) {
+      tags.add('basic');
+    } else {
+      tags.add('intermediate');
+    }
+    
+    return Array.from(tags);
+  }
+
+  private static extractMetadata(content: string, filename: string): DocumentMetadata {
+    return {
+      complexity_level: content.length > 5000 ? 'expert' : 
+                       content.length > 2000 ? 'advanced' :
+                       content.length > 1000 ? 'intermediate' : 'basic',
+      business_domain: this.extractBusinessDomain(content),
+      psychological_insights: this.extractPsychologicalPatterns(content),
+      
+      // Enhanced metadata
+      training_value: this.calculateTrainingPriority(content, 'narrative'),
+      real_world_applications: this.extractRealWorldApplications(content),
+      success_metrics: this.extractSuccessMetrics(content),
+      common_mistakes: this.extractCommonMistakes(content),
+      prerequisites: this.extractDocumentPrerequisites(content),
+      follow_up_actions: this.extractFollowUpActions(content)
+    };
+  }
+
+  private static getDefaultMetadata(): DocumentMetadata {
+    return {
+      complexity_level: 'basic',
+      business_domain: 'operations',
+      psychological_insights: [],
+      training_value: 1,
+      real_world_applications: [],
+      success_metrics: [],
+      common_mistakes: [],
+      prerequisites: [],
+      follow_up_actions: []
+    };
+  }
+
+  private static extractRealWorldApplications(content: string): string[] {
+    const applications = [];
+    if (content.includes('example') || content.includes('case')) {
+      applications.push('Has practical examples');
+    }
+    if (content.includes('client') || content.includes('customer')) {
+      applications.push('Client-facing scenarios');
+    }
+    return applications;
+  }
+
+  private static extractSuccessMetrics(content: string): string[] {
+    const metrics = [];
+    if (content.match(/\d+%/)) metrics.push('Percentage-based metrics');
+    if (content.includes('roi') || content.includes('return')) metrics.push('ROI measurement');
+    if (content.includes('satisfaction') || content.includes('happy')) metrics.push('Satisfaction metrics');
+    return metrics;
+  }
+
+  private static extractCommonMistakes(content: string): string[] {
+    const mistakes = [];
+    if (content.includes('avoid') || content.includes('don\'t')) {
+      mistakes.push('Contains avoidance guidance');
+    }
+    if (content.includes('mistake') || content.includes('error')) {
+      mistakes.push('Identifies common errors');
+    }
+    return mistakes;
+  }
+
+  private static extractDocumentPrerequisites(content: string): string[] {
+    const prereqs = [];
+    if (content.includes('before') || content.includes('first')) {
+      prereqs.push('Sequential dependencies');
+    }
+    if (content.includes('require') || content.includes('need')) {
+      prereqs.push('Resource requirements');
+    }
+    return prereqs;
+  }
+
+  private static extractFollowUpActions(content: string): string[] {
+    const actions = [];
+    if (content.includes('next') || content.includes('then')) {
+      actions.push('Sequential actions identified');
+    }
+    if (content.includes('follow up') || content.includes('continue')) {
+      actions.push('Follow-up processes defined');
+    }
+    return actions;
+  }
+}

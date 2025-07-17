@@ -1,0 +1,119 @@
+'use client';
+
+import { Database, FileText, Brain, Zap } from 'lucide-react';
+
+export default function Home() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Planet BizCORE Parsing App
+              </h1>
+              <p className="text-gray-600 mt-1">
+                Transform unstructured business documents into AI-ready knowledge
+              </p>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="text-sm text-gray-500">
+                Phase 1: Document Processing Engine
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Features Overview */}
+        <div className="mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="bg-white p-6 rounded-lg shadow-sm border">
+              <FileText className="w-8 h-8 text-blue-600 mb-3" />
+              <h3 className="font-semibold text-gray-900 mb-2">Multi-Format Support</h3>
+              <p className="text-sm text-gray-600">
+                Parse Markdown, PDF, DOC, DOCX, and TXT files with intelligent content extraction
+              </p>
+            </div>
+            
+            <div className="bg-white p-6 rounded-lg shadow-sm border">
+              <Brain className="w-8 h-8 text-blue-600 mb-3" />
+              <h3 className="font-semibold text-gray-900 mb-2">Psychological Insights</h3>
+              <p className="text-sm text-gray-600">
+                Extract workflow patterns, psychological frameworks, and business logic
+              </p>
+            </div>
+            
+            <div className="bg-white p-6 rounded-lg shadow-sm border">
+              <Database className="w-8 h-8 text-blue-600 mb-3" />
+              <h3 className="font-semibold text-gray-900 mb-2">Structured Storage</h3>
+              <p className="text-sm text-gray-600">
+                Organize knowledge in Supabase for efficient AI agent training and access
+              </p>
+            </div>
+            
+            <div className="bg-white p-6 rounded-lg shadow-sm border">
+              <Zap className="w-8 h-8 text-blue-600 mb-3" />
+              <h3 className="font-semibold text-gray-900 mb-2">AI-Ready Data</h3>
+              <p className="text-sm text-gray-600">
+                Token-optimized content with cross-references for Phase 2 automation
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Upload Section */}
+        <div className="mb-12">
+          <div className="bg-white rounded-xl shadow-sm border p-8">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                Upload Your Documents
+              </h2>
+              <p className="text-gray-600">
+                Start building your knowledge base by uploading business documents
+              </p>
+            </div>
+            
+            {/* Simple Upload Area */}
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+              <FileText className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+              <p className="text-lg text-gray-700 mb-2">
+                File upload component loading...
+              </p>
+              <p className="text-sm text-gray-500">
+                Setting up advanced parsing capabilities
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Next Steps */}
+        <div className="mt-12 bg-blue-50 rounded-xl p-8">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">System Status</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-2">Phase 1 Progress</h3>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>✅ UI Framework Ready</li>
+                <li>✅ Database Schema Designed</li>
+                <li>✅ Parser Logic Implemented</li>
+                <li>🚧 Component Integration In Progress</li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-2">Next: Connect Supabase</h3>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>📝 Set up Supabase project</li>
+                <li>📝 Add credentials to .env.local</li>
+                <li>📝 Run database schema</li>
+                <li>📝 Test document upload</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}

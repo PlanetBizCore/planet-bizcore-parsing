@@ -1,0 +1,191 @@
+'use client';
+
+import React, { useState, useCallback } from 'react';
+import { useDropzone } from 'react-dropzone';
+import { Upload, File, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { DocumentParser } from '@/lib/parser';
+import { db } from '@/lib/supabase';
+import { UploadProgress } from '@/lib/types';
+
+interface FileUploadProps {
+  onUploadComplete?: (documents: any[]) => void;
+}
+
+export default function FileUpload({ onUploadComplete }: FileUploadProps) {
+  const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
+    setIsProcessing(true);
+    const initialProgress = acceptedFiles.map(file => ({
+      filename: file.name,
+      status: 'uploading' as const,
+      progress: 0
+    }));
+    setUploadProgress(initialProgress);
+
+    const processedDocuments = [];
+
+    for (let i = 0; i < acceptedFiles.length; i++) {
+      const file = acceptedFiles[i];
+      
+      try {
+        // Update progress - parsing
+        setUploadProgress(prev => prev.map(p => 
+          p.filename === file.name 
+            ? { ...p, status: 'parsing', progress: 25 }
+            : p
+        ));
+
+        // Parse the document
+        const parsedDoc = await DocumentParser.parseFile(file);
+        
+        // Update progress - saving
+        setUploadProgress(prev => prev.map(p => 
+          p.filename === file.name 
+            ? { ...p, progress: 75 }
+            : p
+        ));
+
+        // Save to database
+        const savedDoc = await db.insertDocument({
+          id: parsedDoc.id,
+          filename: parsedDoc.filename,
+          file_type: parsedDoc.file_type,
+          upload_date: parsedDoc.upload_date,
+          file_size: parsedDoc.file_size,
+          raw_content: parsedDoc.raw_content,
+          tags: parsedDoc.tags,
+          metadata: parsedDoc.metadata,
+          processing_status: parsedDoc.processing_status,
+          error_message: parsedDoc.error_message
+        });
+
+        // Save sections with document_id
+        const sectionsWithDocId = parsedDoc.parsed_sections.map(section => ({
+          ...section,
+          document_id: savedDoc.id
+        }));
+
+        if (sectionsWithDocId.length > 0) {
+          await db.insertSections(sectionsWithDocId);
+        }
+
+        processedDocuments.push(savedDoc);
+
+        // Update progress - complete
+        setUploadProgress(prev => prev.map(p => 
+          p.filename === file.name 
+            ? { ...p, status: 'complete', progress: 100 }
+            : p
+        ));
+
+      } catch (error) {
+        console.error(`Error processing ${file.name}:`, error);
+        setUploadProgress(prev => prev.map(p => 
+          p.filename === file.name 
+            ? { 
+                ...p, 
+                status: 'error', 
+                progress: 0,
+                error: error instanceof Error ? error.message : 'Unknown error'
+              }
+            : p
+        ));
+      }
+    }
+
+    setIsProcessing(false);
+    onUploadComplete?.(processedDocuments);
+  }, [onUploadComplete]);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      'text/markdown': ['.md'],
+      'text/plain': ['.txt'],
+      'application/pdf': ['.pdf'],
+      'application/msword': ['.doc'],
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx']
+    },
+    multiple: true,
+    disabled: isProcessing
+  });
+
+  const getStatusIcon = (status: UploadProgress['status']) => {
+    switch (status) {
+      case 'uploading':
+      case 'parsing':
+        return <Loader2 className="w-4 h-4 animate-spin text-blue-500" />;
+      case 'complete':
+        return <CheckCircle className="w-4 h-4 text-green-500" />;
+      case 'error':
+        return <XCircle className="w-4 h-4 text-red-500" />;
+    }
+  };
+
+  return (
+    <div className="w-full max-w-4xl mx-auto p-6">
+      <div
+        {...getRootProps()}
+        className={`
+          border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
+          ${isDragActive 
+            ? 'border-pbc-blue bg-blue-50' 
+            : 'border-gray-300 hover:border-pbc-blue hover:bg-gray-50'
+          }
+          ${isProcessing ? 'cursor-not-allowed opacity-50' : ''}
+        `}
+      >
+        <input {...getInputProps()} />
+        <Upload className="w-12 h-12 mx-auto mb-4 text-pbc-gray" />
+        
+        {isDragActive ? (
+          <p className="text-lg text-pbc-blue">Drop your documents here...</p>
+        ) : (
+          <div>
+            <p className="text-lg text-gray-700 mb-2">
+              Drag & drop your documents here, or click to select
+            </p>
+            <p className="text-sm text-pbc-gray">
+              Supports: .md, .pdf, .doc, .docx, .txt files
+            </p>
+          </div>
+        )}
+      </div>
+
+      {uploadProgress.length > 0 && (
+        <div className="mt-6 space-y-3">
+          <h3 className="text-lg font-semibold text-gray-800">Processing Files</h3>
+          {uploadProgress.map((file) => (
+            <div key={file.filename} className="bg-white border rounded-lg p-4 shadow-sm">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center space-x-2">
+                  <File className="w-4 h-4 text-pbc-gray" />
+                  <span className="text-sm font-medium text-gray-700">{file.filename}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  {getStatusIcon(file.status)}
+                  <span className="text-sm text-pbc-gray capitalize">{file.status}</span>
+                </div>
+              </div>
+              
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className={`h-2 rounded-full transition-all duration-300 ${
+                    file.status === 'error' ? 'bg-red-500' : 'bg-pbc-blue'
+                  }`}
+                  style={{ width: `${file.progress}%` }}
+                />
+              </div>
+              
+              {file.error && (
+                <p className="text-sm text-red-600 mt-2">{file.error}</p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
