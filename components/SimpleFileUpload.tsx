@@ -41,11 +41,13 @@ export default function SimpleFileUpload({ onUploadComplete }: SimpleFileUploadP
         // Simple text extraction for MD and TXT files
         const text = await file.text();
         
-        // Enhanced document analysis
+        // Auto-detect everything from content
         const detectedBusinessTags = detectBusinessContext(text);
         const detectedContextTags = detectContextTags(text);
         const allTags = [...detectedBusinessTags, ...detectedContextTags];
-        const documentSections = parseDocumentSections(text);
+        
+        // Auto-extract business model narratives
+        const businessNarratives = extractBusinessModelNarratives(text, detectedBusinessTags);
         
         const documentData = {
           filename: file.name,
@@ -59,12 +61,9 @@ export default function SimpleFileUpload({ onUploadComplete }: SimpleFileUploadP
           processing_status: 'completed',
           psychological_insights: extractBusinessInsights(text),
           tags: extractTags(text),
-          metadata: {
-            sections_detected: documentSections.length,
-            word_count: text.split(/\s+/).length,
-            character_count: text.length,
-            has_structured_content: documentSections.length > 1
-          }
+          
+          // Auto-populated business model narratives (new!)
+          ...businessNarratives
         };
 
         // Save to Supabase
@@ -78,33 +77,6 @@ export default function SimpleFileUpload({ onUploadComplete }: SimpleFileUploadP
           if (error) {
             console.error('Supabase error:', error);
             throw new Error(`Database error: ${error.message}`);
-          }
-
-          // Save document sections if the document was saved successfully
-          if (documentSections.length > 1) {
-            const sectionsData = documentSections.map((section, index) => ({
-              document_id: data.id,
-              section_type: 'content',
-              title: section.title,
-              content: section.content,
-              order_index: index,
-              psychological_tags: extractBusinessInsights(section.content),
-              business_logic_tags: detectContextTags(section.content)
-            }));
-
-            try {
-              const { error: sectionsError } = await supabase
-                .from('sections')
-                .insert(sectionsData);
-
-              if (sectionsError) {
-                console.warn('Failed to save sections:', sectionsError);
-              } else {
-                console.log(`Saved ${sectionsData.length} sections for document:`, data.filename);
-              }
-            } catch (sectionsErr) {
-              console.warn('Sections save error:', sectionsErr);
-            }
           }
 
           console.log('Document saved to Planet BizCORE BizDatabase:', data);
@@ -150,46 +122,17 @@ export default function SimpleFileUpload({ onUploadComplete }: SimpleFileUploadP
     const businessTags: string[] = [];
     const lowercaseText = text.toLowerCase();
     
-    // JMS3 detection - exact matches from Planet bizCORE doc
-    const jms3Patterns = [
-      'jms3', 'jms', 'strategic concierge', 'solo & duo builders', 'solo founders',
-      'duopreneurs', 'john spence', 'executive coaching', 'leadership development',
-      'strategic concierge for founders', 'getting builders unstuck'
-    ];
-    
-    // ai4coaches detection - exact matches
-    const ai4coachesPatterns = [
-      'ai4coaches', 'ai for coaches', 'coaching ai', 'automated coaching',
-      'ai coaching tools', 'digital coaching', 'coaching technology',
-      'ai assessment', 'coaching automation', 'smart coaching'
-    ];
-    
-    // Subject Matter Elders detection - exact matches from doc
-    const smePatterns = [
-      'subject matter elders', 'content creation', 'positioning & distribution',
-      'thought leadership content', 'persona and psychographic mapping',
-      'my story frameworks', 'article + newsletter + social content',
-      'sme content', 'intellectual property'
-    ];
-    
-    // bizCore360 detection - exact matches from doc  
-    const bizCorePatterns = [
-      'bizcore360', 'bizcore360.ai', 'systems + automation engine',
-      'integrated dashboards', 'automation handoffs', 'crm+ funnel builds',
-      'dfy/dwy execution', 'platform connections', 'make, tadabase, openai',
-      'delivery layer automation'
-    ];
-    
-    if (jms3Patterns.some(pattern => lowercaseText.includes(pattern))) {
+    // Auto-detect business context from content
+    if (lowercaseText.includes('jms') || lowercaseText.includes('john spence') || lowercaseText.includes('executive coaching')) {
       businessTags.push('JMS3');
     }
-    if (ai4coachesPatterns.some(pattern => lowercaseText.includes(pattern))) {
+    if (lowercaseText.includes('ai4coaches') || lowercaseText.includes('ai for coaches') || lowercaseText.includes('coaching ai')) {
       businessTags.push('ai4coaches');
     }
-    if (smePatterns.some(pattern => lowercaseText.includes(pattern))) {
+    if (lowercaseText.includes('subject matter elders') || lowercaseText.includes('knowledge preservation') || lowercaseText.includes('expert knowledge')) {
       businessTags.push('SubjectMatterElders');
     }
-    if (bizCorePatterns.some(pattern => lowercaseText.includes(pattern))) {
+    if (lowercaseText.includes('bizcore') || lowercaseText.includes('business intelligence') || lowercaseText.includes('strategic framework')) {
       businessTags.push('bizCore360');
     }
     
@@ -201,75 +144,17 @@ export default function SimpleFileUpload({ onUploadComplete }: SimpleFileUploadP
     return businessTags;
   };
 
-  const parseDocumentSections = (text: string): Array<{title: string, content: string}> => {
-    const sections: Array<{title: string, content: string}> = [];
-    
-    // Split by markdown headers or double line breaks
-    const headerRegex = /^#{1,6}\s+(.+)$/gm;
-    const lines = text.split('\n');
-    
-    let currentSection = { title: 'Introduction', content: '' };
-    let inSection = false;
-    
-    for (const line of lines) {
-      const headerMatch = line.match(headerRegex);
-      
-      if (headerMatch) {
-        // Save previous section if it has content
-        if (currentSection.content.trim()) {
-          sections.push({ ...currentSection });
-        }
-        
-        // Start new section
-        currentSection = {
-          title: line.replace(/^#{1,6}\s+/, '').trim(),
-          content: ''
-        };
-        inSection = true;
-      } else {
-        currentSection.content += line + '\n';
-      }
-    }
-    
-    // Add final section
-    if (currentSection.content.trim()) {
-      sections.push(currentSection);
-    }
-    
-    // If no sections found, treat entire document as one section
-    if (sections.length === 0) {
-      sections.push({ title: 'Document Content', content: text });
-    }
-    
-    return sections;
-  };
-
   const detectContextTags = (text: string): string[] => {
     const contextTags: string[] = [];
     const lowercaseText = text.toLowerCase();
     
-    // Enhanced context detection with more granular patterns
-    const contextPatterns = {
-      'sales': ['sales', 'selling', 'revenue', 'prospecting', 'closing', 'pipeline', 'crm'],
-      'marketing': ['marketing', 'branding', 'campaign', 'promotion', 'advertising', 'market research'],
-      'leadership': ['leadership', 'management', 'leading', 'team leader', 'executive', 'direction'],
-      'coaching': ['coaching', 'mentoring', 'development', 'training', 'skill building', 'guidance'],
-      'strategy': ['strategy', 'strategic', 'planning', 'vision', 'roadmap', 'objectives'],
-      'psychology': ['psychology', 'behavioral', 'cognitive', 'mindset', 'motivation', 'emotional'],
-      'communication': ['communication', 'presentation', 'speaking', 'writing', 'messaging'],
-      'negotiation': ['negotiation', 'bargaining', 'deal making', 'agreement', 'compromise'],
-      'training': ['training', 'education', 'learning', 'workshop', 'seminar', 'curriculum'],
-      'process': ['process', 'workflow', 'procedure', 'methodology', 'system', 'framework'],
-      'automation': ['automation', 'automated', 'efficiency', 'streamline', 'optimization'],
-      'ai': ['artificial intelligence', 'machine learning', 'ai', 'algorithm', 'data science'],
-      'finance': ['financial', 'budget', 'cost', 'profit', 'investment', 'revenue', 'roi'],
-      'operations': ['operations', 'operational', 'logistics', 'delivery', 'execution'],
-      'hr': ['human resources', 'hr', 'recruitment', 'hiring', 'employee', 'talent'],
-      'technology': ['technology', 'tech', 'software', 'digital', 'platform', 'system']
-    };
+    const tagPatterns = [
+      'sales', 'marketing', 'leadership', 'coaching', 'strategy', 'psychology',
+      'communication', 'negotiation', 'training', 'process', 'automation', 'ai'
+    ];
     
-    Object.entries(contextPatterns).forEach(([tag, patterns]) => {
-      if (patterns.some(pattern => lowercaseText.includes(pattern))) {
+    tagPatterns.forEach(tag => {
+      if (lowercaseText.includes(tag)) {
         contextTags.push(tag);
       }
     });
@@ -314,66 +199,34 @@ export default function SimpleFileUpload({ onUploadComplete }: SimpleFileUploadP
   };
 
   const extractBusinessInsights = (text: string): string[] => {
-    const insights: string[] = [];
+    const insights = [];
     const lowercaseText = text.toLowerCase();
     
-    // Enhanced business intelligence extraction with more specific patterns
-    const insightPatterns = {
-      'products-services': [
-        'product', 'service', 'offering', 'solution', 'deliverable',
-        'package', 'program', 'course', 'workshop', 'consulting'
-      ],
-      'customer-analysis': [
-        'customer', 'client', 'demographic', 'target audience', 'persona',
-        'user', 'buyer', 'consumer', 'market segment', 'clientele'
-      ],
-      'competitive-analysis': [
-        'competitor', 'competition', 'market share', 'competitive advantage',
-        'rival', 'competitive landscape', 'market position', 'differentiation'
-      ],
-      'resource-planning': [
-        'resource', 'budget', 'investment', 'funding', 'capital',
-        'staffing', 'headcount', 'capacity', 'allocation', 'cost'
-      ],
-      'business-process': [
-        'process', 'workflow', 'procedure', 'methodology', 'framework',
-        'system', 'operation', 'protocol', 'standard', 'best practice'
-      ],
-      'psychological-framework': [
-        'psychology', 'behavior', 'motivation', 'mindset', 'cognitive',
-        'emotional', 'personality', 'behavioral pattern', 'psychological profile'
-      ],
-      'strategic-planning': [
-        'strategy', 'strategic', 'goal', 'objective', 'vision', 'mission',
-        'roadmap', 'planning', 'direction', 'initiative'
-      ],
-      'risk-analysis': [
-        'risk', 'challenge', 'issue', 'problem', 'threat', 'vulnerability',
-        'obstacle', 'barrier', 'concern', 'limitation'
-      ],
-      'sales-process': [
-        'sales process', 'selling', 'prospecting', 'lead generation',
-        'closing', 'objection handling', 'pipeline', 'conversion'
-      ],
-      'leadership-development': [
-        'leadership development', 'executive coaching', 'management training',
-        'leadership skills', 'team building', 'organizational culture'
-      ],
-      'communication-strategy': [
-        'communication', 'messaging', 'presentation', 'storytelling',
-        'public speaking', 'writing', 'content strategy'
-      ],
-      'performance-metrics': [
-        'kpi', 'metrics', 'measurement', 'performance', 'analytics',
-        'dashboard', 'reporting', 'benchmarking', 'roi'
-      ]
-    };
-    
-    Object.entries(insightPatterns).forEach(([insight, patterns]) => {
-      if (patterns.some(pattern => lowercaseText.includes(pattern))) {
-        insights.push(insight);
-      }
-    });
+    // Business Intelligence Categories
+    if (lowercaseText.includes('product') || lowercaseText.includes('service') || lowercaseText.includes('offering')) {
+      insights.push('products-services');
+    }
+    if (lowercaseText.includes('customer') || lowercaseText.includes('client') || lowercaseText.includes('demographic')) {
+      insights.push('customer-analysis');
+    }
+    if (lowercaseText.includes('competitor') || lowercaseText.includes('competition') || lowercaseText.includes('market share')) {
+      insights.push('competitive-analysis');
+    }
+    if (lowercaseText.includes('resource') || lowercaseText.includes('budget') || lowercaseText.includes('investment')) {
+      insights.push('resource-planning');
+    }
+    if (lowercaseText.includes('process') || lowercaseText.includes('workflow') || lowercaseText.includes('procedure')) {
+      insights.push('business-process');
+    }
+    if (lowercaseText.includes('psychology') || lowercaseText.includes('behavior') || lowercaseText.includes('motivation')) {
+      insights.push('psychological-framework');
+    }
+    if (lowercaseText.includes('strategy') || lowercaseText.includes('goal') || lowercaseText.includes('objective')) {
+      insights.push('strategic-planning');
+    }
+    if (lowercaseText.includes('risk') || lowercaseText.includes('challenge') || lowercaseText.includes('issue')) {
+      insights.push('risk-analysis');
+    }
     
     return insights.length > 0 ? insights : ['general-business'];
   };
@@ -394,6 +247,82 @@ export default function SimpleFileUpload({ onUploadComplete }: SimpleFileUploadP
     if (lowercaseText.includes('communication')) tags.push('communication');
     
     return tags.length > 0 ? tags : ['business-operations'];
+  };
+
+  // Auto-extract business model narratives from document content
+  const extractBusinessModelNarratives = (text: string, tags: string[]) => {
+    const narratives: any = {};
+    const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 20);
+    
+    // Helper function to find relevant sentences
+    const findRelevantSentences = (patterns: RegExp[], maxSentences = 2) => {
+      for (const pattern of patterns) {
+        for (let i = 0; i < sentences.length; i++) {
+          if (pattern.test(sentences[i])) {
+            return sentences.slice(i, i + maxSentences).join('. ').trim();
+          }
+        }
+      }
+      return null;
+    };
+    
+    // JMS3 narrative extraction
+    if (tags.includes('JMS3')) {
+      narratives.jms3_description = findRelevantSentences([
+        /strategic concierge/i,
+        /solo.*?founders/i,
+        /getting.*?builders.*?unstuck/i
+      ]);
+      narratives.jms3_methodology = findRelevantSentences([
+        /coaching.*?approach/i,
+        /leadership.*?development/i,
+        /executive.*?coaching/i
+      ]);
+    }
+    
+    // AI4Coaches narrative extraction
+    if (tags.includes('ai4coaches')) {
+      narratives.ai4coaches_description = findRelevantSentences([
+        /ai.*?coaching/i,
+        /automated.*?coaching/i,
+        /coaching.*?technology/i
+      ]);
+      narratives.ai4coaches_technology = findRelevantSentences([
+        /ai.*?assessment/i,
+        /coaching.*?automation/i,
+        /smart.*?coaching/i
+      ]);
+    }
+    
+    // Subject Matter Elders narrative extraction
+    if (tags.includes('SubjectMatterElders')) {
+      narratives.sme_description = findRelevantSentences([
+        /subject.*?matter.*?elders/i,
+        /content.*?creation/i,
+        /thought.*?leadership/i
+      ]);
+      narratives.sme_content_strategy = findRelevantSentences([
+        /positioning.*?distribution/i,
+        /article.*?newsletter/i,
+        /persona.*?psychographic/i
+      ]);
+    }
+    
+    // bizCore360 narrative extraction
+    if (tags.includes('bizCore360')) {
+      narratives.bizcore360_description = findRelevantSentences([
+        /bizcore360/i,
+        /systems.*?automation/i,
+        /integrated.*?dashboards/i
+      ]);
+      narratives.bizcore360_systems = findRelevantSentences([
+        /automation.*?handoffs/i,
+        /crm.*?funnel/i,
+        /platform.*?connections/i
+      ]);
+    }
+    
+    return narratives;
   };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
