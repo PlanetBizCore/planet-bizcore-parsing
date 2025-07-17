@@ -14,6 +14,7 @@ interface Document {
   processing_status: string;
   psychological_insights: string[];
   tags: string[];
+  business_tags: string[];
   created_at: string;
   raw_content: string;
 }
@@ -198,16 +199,33 @@ export default function DocumentViewer() {
                   </div>
                 )}
 
-                {/* Tags */}
-                {selectedDoc.tags && selectedDoc.tags.length > 0 && (
+                {/* Business Tags */}
+                {selectedDoc.business_tags && selectedDoc.business_tags.length > 0 && (
                   <div className="mb-6">
                     <h4 className="font-medium text-gray-700 mb-3 flex items-center">
                       <Tag className="w-4 h-4 mr-2" />
                       Business Tags
                     </h4>
                     <div className="flex flex-wrap gap-2">
-                      {selectedDoc.tags.map((tag, idx) => (
+                      {selectedDoc.business_tags.map((tag, idx) => (
                         <span key={idx} className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Context Tags */}
+                {selectedDoc.tags && selectedDoc.tags.length > 0 && (
+                  <div className="mb-6">
+                    <h4 className="font-medium text-gray-700 mb-3 flex items-center">
+                      <Tag className="w-4 h-4 mr-2" />
+                      Context Tags
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedDoc.tags.map((tag, idx) => (
+                        <span key={idx} className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
                           {tag}
                         </span>
                       ))}
