@@ -27,23 +27,29 @@
 ## Technical Implementation Knowledge
 
 ### Database Integration
-- Access to full `planet_bizcore_intelligence` table
+- Access to full `planet_bizcore_intelligence` table with hierarchical topic structure
 - Client-specific document filtering via `client_organization_id`
-- Business model tag utilization for context
-- Document processing history for reference
+- **Enhanced Topic Navigation**: Hierarchical topic trees for surgical context precision
+- **Auto-Populated Narratives**: Business model descriptions and methodologies from document processing
+- **Topic Relevance Scoring**: Weighted context based on document-topic association confidence
+- Document processing history with granular topic extraction details
 
 ### Application Architecture
 ```
-Frontend: Next.js 15.4.1 + TypeScript
-Database: Supabase with service role access
-Processing: Real-time document parsing
-Environment: Production via Vercel
+Frontend: Next.js 15.4.1 + TypeScript with feature flag controls
+Database: Supabase with hierarchical topics schema (development branch)
+Processing: Real-time document parsing with auto-topic extraction
+Environment: Production via Vercel with safe development branching
+Development: Feature branch strategy for hierarchical topics implementation
+Schema: Version 2 with knowledge_topics, document_topic_associations, hierarchy paths
 ```
 
 ### Key Code Components
-- `DocumentViewer.tsx`: Full document display capability
-- `SimpleFileUpload.tsx`: Business model detection patterns
-- Database schema: Unified intelligence approach
+- `DocumentViewer.tsx`: Full document display with hierarchical topic navigation capability
+- `SimpleFileUpload.tsx`: Enhanced with extractBusinessModelNarratives() for auto-population
+- `lib/featureFlags.ts`: Safe development controls for hierarchical topics rollout
+- Database schema: Unified intelligence with hierarchical topic structure enhancement
+- `hierarchical_topics_schema.sql`: Enhanced schema for topic trees and granular context
 
 ## Workflow Types
 
@@ -190,17 +196,20 @@ Environment: Production via Vercel
 
 ## Database Learning & Adaptation
 
-### Tag-Based Dataset Creation
-- Parse documents by business model tags to generate agent-specific training data
-- Create system instructions from collections of tagged documents
-- Build specialized data stores based on agent purpose and client needs
-- Automatically incorporate new tagged documents into agent knowledge base
+### Enhanced Tag-Based Dataset Creation
+- **Hierarchical Topic Parsing**: Generate agent training data from topic trees with granular context
+- **Auto-Population Integration**: Automatically incorporate extracted narratives during document upload
+- **Topic Relevance Weighting**: Prioritize agent responses based on document-topic association scores
+- **Cross-Reference Intelligence**: Use topic relationships for comprehensive agent instruction assembly
+- **Feature Flag Controlled**: Safely test enhanced hierarchical responses vs. flat tag responses
+- **Schema Version Adaptive**: Agent training adapts to available database structure complexity
 
-### Continuous Improvement
-- Analyze client interaction patterns
-- Identify common refinement requests
-- Update workflow templates based on tagged document insights
-- Enhance guidance scripts using processed business model content
+### Continuous Improvement with Hierarchical Data
+- **Topic Usage Analytics**: Track hierarchical topic query patterns for optimization
+- **Granular Refinement Tracking**: Identify common refinement requests at topic level
+- **Hierarchical Template Updates**: Update workflow templates based on topic-specific insights
+- **Cross-Business Learning**: Extract patterns from shared topics across business models
+- **Accuracy Measurement**: Compare agent performance with flat tags vs. hierarchical topics
 
 ### Business Model Evolution
 - Track new business model patterns in uploaded documents

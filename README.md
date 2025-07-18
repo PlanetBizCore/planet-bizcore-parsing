@@ -1,74 +1,130 @@
-# 🚀 Planet bizCORE Parsing App - Unified BizDatabase
+# 🚀 Planet bizCORE Parsing App - Hierarchical BizDatabase
 
-## Current Status: Enhanced Business Context Detection (July 17, 2025)
+## Current Status: Hierarchical Topics Development (July 17, 2025)
 
-### ✅ **Latest Updates**
-- **Full Fidelity Content Display**: Fixed content preview truncation - now shows complete documents
-- **Enhanced Business Model Detection**: Updated patterns to detect all 4 Planet bizCORE businesses:
-  - **JMS3** (Strategic Concierge for Solo & Duo Builders)
-  - **ai4coaches** (AI-powered coaching tools and automation)
-  - **Subject Matter Elders** (Content Creation, Positioning & Distribution)  
-  - **bizCore360.ai** (Systems, Dashboards, and Automation)
-- **Granular Intelligence Extraction**: 12+ business intelligence categories
-- **Section-Level Analysis**: Automatic document structure parsing
-- **Unified Database Approach**: Single BizDatabase for all owned businesses with automatic context detection
+### ✅ **Production Ready**
+- **Live Application**: Fully functional at Vercel production environment
+- **Business Model Auto-Detection**: All 4 Planet bizCORE businesses with auto-population
+- **Enhanced Parsing**: Auto-extraction of business model narratives during upload
+- **Agent Context Documents**: Complete explainer and doer agent training contexts
+- **Safe Development**: Feature branch strategy preserving production stability
 
-### 🎯 **Core Purpose**
-Unified Planet bizCORE BizDatabase for processing 150+ business documents across all owned businesses with:
-- Automatic business context detection (no manual tagging required)
-- Enhanced parsing granularity for deep intelligence extraction
-- Simple upload interface for internal use
-- Full-fidelity content preservation with complete narrative details
+### 🚧 **Development Branch: Hierarchical Topics**
+- **Enhanced Schema**: Topic trees with parent-child relationships and granular narratives
+- **Auto-Topic Extraction**: Build hierarchical knowledge from document content
+- **Feature Flag System**: Safe development with production fallback controls
+- **Surgical AI Precision**: Topic → subtopic → sub-subtopic for reduced hallucinations
+- **Cross-Business Intelligence**: Shared topics across JMS3, AI4Coaches, SME, bizCore360
 
-### 🏢 **Business Model Detection Patterns**
-The system now accurately detects business context using exact terms from documents:
+### 🎯 **Core Purpose Evolution**
+**Phase 1** (Production): Unified Planet bizCORE BizDatabase with business model auto-detection
+**Phase 2** (Development): Hierarchical topic structure for enhanced AI agent accuracy
 
-**JMS3**: 'jms3', 'strategic concierge', 'solo & duo builders', 'duopreneurs', 'getting builders unstuck'
-**ai4coaches**: 'ai4coaches', 'ai for coaches', 'coaching ai', 'automated coaching', 'coaching technology'
-**Subject Matter Elders**: 'subject matter elders', 'content creation', 'positioning & distribution', 'thought leadership'
-**bizCore360**: 'bizcore360.ai', 'systems + automation engine', 'integrated dashboards', 'crm+ funnel builds'
+### 🏢 **Enhanced Business Model Detection & Auto-Population**
+System now extracts narratives automatically during upload:
 
-### 1. **Supabase Setup** (2 minutes)
-1. Go to [supabase.com](https://supabase.com) and create a new project
-2. Wait for your database to be ready
-3. Go to **Settings > API** and copy:
-   - Project URL
-   - `anon` public key
-   - `service_role` secret key (for admin operations)
+**JMS3 Auto-Extraction**:
+- `jms3_description`: Strategic concierge narrative identification
+- `jms3_methodology`: Coaching approach and leadership development context
 
-### 2. **Configure Environment** (1 minute)
-Edit `.env.local` and replace:
-```bash
-NEXT_PUBLIC_SUPABASE_URL=https://YOUR-PROJECT.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-actual-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-actual-service-role-key
+**AI4Coaches Auto-Extraction**:
+- `ai4coaches_description`: AI coaching technology narrative
+- `ai4coaches_technology`: Automated coaching system details
+
+**Subject Matter Elders Auto-Extraction**:
+- `sme_description`: Content creation and thought leadership context  
+- `sme_content_strategy`: Positioning and distribution strategies
+
+**bizCore360 Auto-Extraction**:
+- `bizcore360_description`: Systems and automation narrative
+- `bizcore360_systems`: Platform integration and automation details
+
+### 🌳 **Hierarchical Topics Structure (Development)**
+```
+Business Model (Level 1)
+├── Strategic Leadership (Level 2)
+│   ├── Vision Setting (Level 3)
+│   └── Decision Frameworks (Level 3)
+├── Operational Excellence (Level 2)
+│   └── Process Design (Level 3)
+└── Team Development (Level 2)
 ```
 
-### 3. **Create Database Schema** (1 minute)
-1. In Supabase dashboard, go to **SQL Editor**
-2. Copy and paste the entire contents of `supabase-schema.sql`
-3. Click **Run** to create all tables and indexes
+Each topic contains:
+- **Topic Name**: Clear identifier
+- **Short Description**: Tagline for quick context
+- **Long Narrative**: Full paragraph for detailed AI context
+- **Hierarchical Relationships**: Parent-child topic chains
+- **Cross-References**: Related, contradictory, and prerequisite topics
 
-### 4. **Start Processing Documents** (1 minute)
-1. Your dev server is running at: http://localhost:3000
-2. Drag and drop your first Markdown file
-3. Watch the magic happen! ✨
+## 🚀 Quick Start
 
----
+### Production Deployment (Stable)
+```bash
+git checkout master
+npm install
+npm run build
+npx vercel --prod
+```
 
-## What You'll See Working
+### Development Environment (Hierarchical Topics)
+```bash
+git checkout feature/hierarchical-topics
+.\setup_development.ps1  # Windows PowerShell
+# OR
+./setup_development.sh   # Linux/Mac
 
-### 📄 **Document Processing**
-- Upload `.md`, `.pdf`, `.doc`, `.docx`, `.txt` files
-- Automatic parsing with psychological insight extraction
-- Business logic categorization
-- Token efficiency optimization
+# Apply enhanced schema
+# Copy hierarchical_topics_schema.sql to Supabase SQL Editor and run
+```
 
-### 🧠 **AI-Ready Data Structure**
-- Wide database tables for fast AI agent access
-- Cross-reference tracking between documents
-- Confidence scoring for all extractions
-- Compressed + full content for token optimization
+### Environment Configuration
+**Production** (`.env.production`):
+```bash
+NEXT_PUBLIC_ENABLE_HIERARCHICAL_TOPICS=false
+NEXT_PUBLIC_DATABASE_SCHEMA_VERSION=1
+# Conservative settings for production stability
+```
+
+**Development** (`.env.development`):
+```bash
+NEXT_PUBLIC_ENABLE_HIERARCHICAL_TOPICS=true
+NEXT_PUBLIC_ENABLE_AUTO_TOPIC_EXTRACTION=true
+NEXT_PUBLIC_DATABASE_SCHEMA_VERSION=2
+# Enhanced features for testing
+```
+
+### Database Schema Setup
+**Phase 1** (Production): Apply `supabase-schema.sql`
+**Phase 2** (Development): Apply `hierarchical_topics_schema.sql` (additive)
+
+### Feature Flag Controls
+- **Safe Development**: New features controlled by environment variables
+- **Gradual Rollout**: Percentage-based feature activation
+- **Instant Rollback**: Feature flags allow immediate disable
+- **Production Safety**: Conservative defaults with explicit opt-in
+
+## 🎯 What You'll See Working
+
+### 📄 **Enhanced Document Processing**
+- **Auto-Upload Processing**: Documents populate database immediately during upload
+- **Business Model Detection**: Automatic tagging and narrative extraction
+- **Hierarchical Topic Extraction** (Development): Auto-generation of topic trees
+- **Cross-Reference Intelligence**: Related topics and document associations
+- **Multi-Format Support**: `.md`, `.pdf`, `.doc`, `.docx`, `.txt` files
+
+### 🧠 **AI-Ready Hierarchical Data Structure**
+- **Topic Trees**: Main topics → subtopics → sub-subtopics with full narrative context
+- **Granular Context Access**: Surgical precision for AI agent responses
+- **Auto-Populated Narratives**: Business model descriptions extracted during upload
+- **Cross-Business Intelligence**: Shared topics across all Planet bizCORE models
+- **Relevance Scoring**: Document-topic associations with confidence levels
+
+### 🚩 **Feature Flag Controlled Development**
+- **Safe Testing**: New hierarchical features controlled by environment flags
+- **Production Stability**: Master branch remains untouched during development
+- **Gradual Rollout**: Percentage-based feature activation for measured deployment
+- **Debug Mode**: Enhanced extraction details visible in development environment
 
 ### 🔄 **Meta-Learning Foundation**
 - Every document processed improves the system

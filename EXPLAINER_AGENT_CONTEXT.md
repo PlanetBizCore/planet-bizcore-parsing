@@ -42,16 +42,24 @@
 
 ### Current Technology Stack
 - **Frontend**: Next.js 15.4.1 with TypeScript
-- **Database**: Supabase with unified intelligence table
-- **Deployment**: Vercel production environment
-- **Document Processing**: Real-time parsing with business model detection
+- **Database**: Supabase with hierarchical topics structure and unified intelligence
+- **Deployment**: Vercel production environment with feature flag controls
+- **Document Processing**: Real-time parsing with auto-topic extraction and business model detection
+- **Development**: Feature branch strategy for safe hierarchical topics implementation
 
-### Key Application Features
-- Document upload and processing
-- Business model auto-tagging
-- Full-content document viewing
-- Client organization management
-- Data scope categorization
+### Enhanced Application Features
+- **Hierarchical Topic Extraction**: Auto-population of topic trees from document content
+- **Business Model Auto-Tagging**: Intelligent detection and categorization
+- **Topic-Document Associations**: Granular linking with relevance scoring
+- **Multi-Level Context**: Topics, subtopics, and sub-subtopics for surgical AI precision
+- **Feature Flag System**: Safe development and gradual rollout controls
+- **Enhanced Schema**: Wide columns for fast AI agent access plus deep relationships when needed
+
+### Database Architecture Evolution
+- **Phase 1**: Flat business model tags (current production)
+- **Phase 2**: Hierarchical topic structure (development branch)
+- **Schema Version 1**: Basic documents with business_tags array
+- **Schema Version 2**: Enhanced with knowledge_topics, document_topic_associations, and topic hierarchy paths
 
 ## Conversation Patterns for Prospects
 
@@ -73,22 +81,39 @@
 
 ## Content Sources for Training
 
-### Processed Documents
-All documents in the bizDatabase tagged with business models provide:
-- Real client scenarios
-- Proven methodologies
-- Industry-specific applications
-- Success patterns
+### Hierarchical Topic Structure (Development)
+All documents processed through enhanced schema provide:
+- **Topic Hierarchies**: Main topics → subtopics → sub-subtopics with narrative context
+- **Granular Context**: Topic-specific short descriptions and long narratives
+- **Cross-References**: Related topics, prerequisites, and contradictory concepts
+- **Relevance Scoring**: Document-topic associations with confidence levels
+- **Auto-Extraction**: AI-generated topic trees from document content analysis
 
-### Business Model Patterns
-Reference patterns from `SimpleFileUpload.tsx` detection:
+### Processed Documents
+Documents in the bizDatabase tagged with business models provide:
+- Real client scenarios mapped to specific topics
+- Proven methodologies organized in hierarchical context
+- Industry-specific applications with topic granularity
+- Success patterns linked to measurable topic relevance
+
+### Enhanced Business Model Context
+Reference enhanced extraction from `SimpleFileUpload.tsx`:
 ```
-- 'jms3'
-- 'john\\'s management system'
-- 'strategic concierge'
-- 'ai4coaches'
-- 'subject matter elders'
-- 'bizcore360'
+JMS3 Auto-Extraction:
+- jms3_description: Strategic concierge narrative extraction
+- jms3_methodology: Coaching approach identification
+
+AI4Coaches Auto-Extraction:
+- ai4coaches_description: AI coaching technology narrative
+- ai4coaches_technology: Automated coaching system details
+
+Subject Matter Elders Auto-Extraction:
+- sme_description: Content creation and thought leadership context
+- sme_content_strategy: Positioning and distribution strategies
+
+bizCore360 Auto-Extraction:
+- bizcore360_description: Systems and automation narrative
+- bizcore360_systems: Platform integration details
 ```
 
 ## Response Guidelines
@@ -107,17 +132,26 @@ Reference patterns from `SimpleFileUpload.tsx` detection:
 
 ## Integration Points
 
-### Tag-Based Learning System
-- Parse documents by business model tags to create agent-specific datasets
-- Generate system instructions from tagged document collections
-- Build data stores filtered by agent purpose and scope
-- Automatically update agent knowledge as new tagged documents are processed
+### Enhanced Tag-Based Learning System
+- **Hierarchical Topic Queries**: Access granular context from topic trees for precise agent responses
+- **Auto-Population Intelligence**: Extract topic narratives automatically during document upload
+- **Topic Relevance Scoring**: Weight responses based on document-topic association confidence
+- **Cross-Business Pattern Recognition**: Identify shared topics across JMS3, AI4Coaches, SME, and bizCore360
+- **Feature Flag Controls**: Safely test hierarchical responses vs. flat tag responses
+- **Schema Version Awareness**: Agents adapt based on available data structure complexity
 
-### Database Learning
-- Query processed documents for relevant examples
-- Extract success stories and case studies
-- Identify industry-specific applications
-- Reference actual client workflows
+### Advanced Database Learning
+- **Topic Hierarchy Navigation**: Query parent-child topic relationships for contextual depth
+- **Narrative Context Assembly**: Combine short descriptions and long narratives for optimal response length
+- **Contradiction Detection**: Reference contradictory_topic_ids to provide balanced perspectives
+- **Prerequisite Awareness**: Use prerequisite_topic_ids to ensure foundational knowledge in explanations
+- **Usage Pattern Analytics**: Track topic query frequency to optimize agent knowledge prioritization
+
+### Development Branch Integration
+- **Safe Feature Testing**: Use feature flags to test hierarchical topic responses with prospects
+- **Gradual Rollout**: Control hierarchical_topics_percentage for measured deployment
+- **Fallback Mechanisms**: Maintain compatibility with existing flat tag structure
+- **Debug Mode**: Enhanced extraction details visible in development environment
 
 ### Handoff to Doer Agents
 - Prepare prospects for transition to paid client status
