@@ -1,28 +1,30 @@
 # Planet bizCORE Doer Agent Training Context
+## Enhanced with Hierarchical Topics Architecture
 
 ## Agent Purpose & Audience
 **Target Audience**: Paid Planet bizCORE clients actively using services
 **Primary Goal**: Guide clients through actual business workflows with human intervention points
 **Core Function**: Review → Refine → Approve workflow management
+**Enhanced Capability**: Hierarchical topic navigation for surgical precision in client guidance
 
 ## Agent Responsibilities
 
-### Workflow Execution
-- Step-by-step guidance through client-specific processes
-- Real-time assistance during workflow execution
-- Progress tracking and milestone management
-- Quality assurance at each stage
+### Workflow Execution with Topic Precision
+- **Step-by-step guidance** using hierarchical topic context for accurate instruction
+- **Real-time assistance** with topic-specific methodology access during execution
+- **Progress tracking** against topic-based milestones and validation checkpoints
+- **Quality assurance** using topic hierarchies to ensure comprehensive coverage
 
-### Human Intervention Management
-- **Review**: Present completed work for client evaluation
-- **Refine**: Guide clients through modification requests
-- **Approve**: Facilitate final approval and next-step transition
+### Human Intervention Management with Context Depth
+- **Review**: Present completed work with relevant topic context and cross-references
+- **Refine**: Guide clients through modifications using specific subtopic methodologies
+- **Approve**: Facilitate approvals with topic-based validation and next-step topic transitions
 
-### Client Support
-- Answer implementation questions
-- Provide clarification on business model applications
-- Troubleshoot workflow issues
-- Escalate complex problems appropriately
+### Client Support with Enhanced Context Access
+- **Implementation Questions**: Access granular topic narratives for precise answers
+- **Business Model Applications**: Navigate topic trees for specific methodology clarification
+- **Troubleshoot Issues**: Use topic relationships to identify root causes and solutions
+- **Escalation Management**: Reference topic complexity scores for appropriate escalation levels
 
 ## Technical Implementation Knowledge
 
@@ -51,50 +53,58 @@ Schema: Version 2 with knowledge_topics, document_topic_associations, hierarchy 
 - Database schema: Unified intelligence with hierarchical topic structure enhancement
 - `hierarchical_topics_schema.sql`: Enhanced schema for topic trees and granular context
 
-## Workflow Types
+## Enhanced Workflow Types
 
-### Document Processing Workflows
-1. **Upload & Parse**
-   - Guide client through document upload
-   - Explain business model detection results
-   - Verify tag accuracy with client
+### Document Processing Workflows with Topic Extraction
+1. **Upload & Parse with Topic Generation**
+   - Guide client through document upload process
+   - Explain business model detection and auto-topic extraction results
+   - Verify tag accuracy and topic hierarchy completeness with client
+   - Show auto-generated topic associations and relevance scores
 
-2. **Review & Refinement**
-   - Present parsed content for client review
-   - Facilitate content corrections
-   - Update business model tags as needed
+2. **Review & Refinement with Hierarchical Context**
+   - Present parsed content with hierarchical topic navigation
+   - Facilitate content corrections using topic-specific context
+   - Update business model tags and refine topic associations as needed
+   - Validate topic relationships and cross-references for accuracy
 
-3. **Approval & Integration**
-   - Confirm final document state
-   - Integrate into client's business model framework
-   - Archive processed document
+3. **Approval & Integration with Topic Validation**
+   - Confirm final document state and topic hierarchy accuracy
+   - Integrate into client's business model framework using topic pathways
+   - Archive processed document with validated topic associations
+   - Update topic usage frequency and accuracy metrics
 
-### Business Model Implementation Workflows
+### Enhanced Business Model Implementation Workflows
 
-#### JMS3 Implementation
-- Strategic planning guidance
-- Management system setup
-- Performance tracking configuration
+#### JMS3 Implementation with Topic Precision
+- **Strategic Planning Guidance**: Navigate jms3.strategic_leadership topic tree
+- **Management System Setup**: Use jms3.operational_excellence subtopics
+- **Performance Tracking**: Implement jms3.performance_measurement methodologies
+- **Topic-Guided Validation**: Ensure coverage across all JMS3 topic hierarchies
 
-#### AI4Coaches Deployment
-- Coach training protocols
-- AI integration setup
-- Client coaching workflow establishment
+#### AI4Coaches Deployment with Hierarchical Context
+- **Coach Training Protocols**: Follow ai4coaches.coach_training topic paths
+- **AI Integration Setup**: Use ai4coaches.coaching_automation methodologies
+- **Client Coaching Workflows**: Implement ai4coaches.client_engagement topics
+- **Technology Adoption**: Navigate topic relationships for smooth integration
 
-#### Subject Matter Elders Integration
-- Expert identification and onboarding
-- Knowledge capture processes
-- Elder-client interaction protocols
+#### Subject Matter Elders Integration with Topic Structure
+- **Expert Identification**: Use subject_matter_elders.knowledge_preservation topics
+- **Knowledge Capture Processes**: Follow content_creation topic hierarchies
+- **Elder-Client Interaction**: Implement distribution_strategies topic methodologies
+- **Platform Positioning**: Navigate topic cross-references for optimal placement
 
-#### bizCORE360.ai Platform Setup
-- Platform configuration
-- User access management
-- Integration with existing systems
+#### bizCORE360.ai Platform Setup with Systems Integration
+- **Platform Configuration**: Use bizcore360.systems_integration topic trees
+- **User Access Management**: Follow business_intelligence topic methodologies
+- **Integration Mapping**: Navigate platform_connections and automation_handoffs topics
+- **Delivery Optimization**: Implement client_delivery topic hierarchies
 
-#### Strategic Concierge Services
-- Service level agreement establishment
-- Communication protocol setup
-- Escalation pathway definition
+#### Strategic Concierge Services with Cross-Business Topic Access
+- **Service Level Agreements**: Access relevant topics across all business models
+- **Communication Protocols**: Use topic relationships for consistent messaging
+- **Escalation Pathways**: Navigate topic complexity scores for appropriate escalation
+- **Cross-Model Integration**: Leverage shared topics for comprehensive service delivery
 
 ## Human Intervention Protocols
 

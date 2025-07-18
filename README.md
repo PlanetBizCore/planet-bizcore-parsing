@@ -1,24 +1,26 @@
-# 🚀 Planet bizCORE Parsing App - Hierarchical BizDatabase
+# 🚀 Planet bizCORE Parsing App - Hierarchical BizDatabase & AI Agent Training System
 
-## Current Status: Hierarchical Topics Development (July 17, 2025)
+## Current Status: Enhanced Development with Hierarchical Topics (July 17, 2025)
 
-### ✅ **Production Ready**
-- **Live Application**: Fully functional at Vercel production environment
+### ✅ **Production Ready (Master Branch)**
+- **Live Application**: [https://pbc-parsing-ktej5rv6w-johns-projects-aa7ae184.vercel.app](https://pbc-parsing-ktej5rv6w-johns-projects-aa7ae184.vercel.app)
 - **Business Model Auto-Detection**: All 4 Planet bizCORE businesses with auto-population
 - **Enhanced Parsing**: Auto-extraction of business model narratives during upload
 - **Agent Context Documents**: Complete explainer and doer agent training contexts
-- **Safe Development**: Feature branch strategy preserving production stability
+- **Production Database**: Auto-population of wide columns with business model narratives
 
-### 🚧 **Development Branch: Hierarchical Topics**
+### 🚧 **Development Branch: feature/hierarchical-topics**
 - **Enhanced Schema**: Topic trees with parent-child relationships and granular narratives
-- **Auto-Topic Extraction**: Build hierarchical knowledge from document content
-- **Feature Flag System**: Safe development with production fallback controls
-- **Surgical AI Precision**: Topic → subtopic → sub-subtopic for reduced hallucinations
+- **Auto-Topic Extraction**: Build hierarchical knowledge from document content analysis
+- **Feature Flag System**: Safe development with instant production fallback controls
+- **Surgical AI Precision**: Topic → subtopic → sub-subtopic chains for accuracy
 - **Cross-Business Intelligence**: Shared topics across JMS3, AI4Coaches, SME, bizCore360
+- **Agent Training Optimization**: Context complexity scoring and usage frequency tracking
 
-### 🎯 **Core Purpose Evolution**
-**Phase 1** (Production): Unified Planet bizCORE BizDatabase with business model auto-detection
-**Phase 2** (Development): Hierarchical topic structure for enhanced AI agent accuracy
+### 🎯 **Evolution Strategy: Enhanced AI Agent Training**
+**Phase 1** (Production): Unified Planet bizCORE BizDatabase with auto-population
+**Phase 2** (Development): Hierarchical topic structure for hallucination reduction
+**Phase 3** (Planned): Query suggestion system and dynamic instruction assembly
 
 ### 🏢 **Enhanced Business Model Detection & Auto-Population**
 System now extracts narratives automatically during upload:
@@ -44,22 +46,32 @@ System now extracts narratives automatically during upload:
 Business Model (Level 1)
 ├── Strategic Leadership (Level 2)
 │   ├── Vision Setting (Level 3)
+│   │   ├── Organizational Vision Creation (Level 4)
+│   │   └── Vision Communication Strategies (Level 4)
 │   └── Decision Frameworks (Level 3)
+│       ├── Risk Assessment Models (Level 4)
+│       └── Stakeholder Analysis (Level 4)
 ├── Operational Excellence (Level 2)
-│   └── Process Design (Level 3)
+│   ├── Process Design (Level 3)
+│   │   ├── Workflow Optimization (Level 4)
+│   │   └── Quality Assurance Systems (Level 4)
+│   └── Performance Measurement (Level 3)
 └── Team Development (Level 2)
+    ├── Hiring Strategies (Level 3)
+    └── Performance Management (Level 3)
 ```
 
-Each topic contains:
-- **Topic Name**: Clear identifier
-- **Short Description**: Tagline for quick context
-- **Long Narrative**: Full paragraph for detailed AI context
-- **Hierarchical Relationships**: Parent-child topic chains
-- **Cross-References**: Related, contradictory, and prerequisite topics
+**Enhanced Topic Data Structure**:
+- **Topic Name**: Clear hierarchical identifier ("jms3.leadership.vision_setting")
+- **Short Description**: Tagline for quick AI context
+- **Long Narrative**: Full paragraph for detailed agent instruction
+- **Hierarchical Relationships**: Parent-child topic chains with path tracking
+- **Cross-References**: Related, contradictory, and prerequisite topic connections
+- **Auto-Population Metadata**: Extraction confidence, source documents, validation status
+- **AI Training Optimization**: Context complexity scoring, usage frequency, accuracy tracking
 
-## 🚀 Quick Start
-
-### Production Deployment (Stable)
+### � **Development Setup & Testing Workflow**
+**Production Workflow** (Master Branch):
 ```bash
 git checkout master
 npm install
@@ -67,42 +79,47 @@ npm run build
 npx vercel --prod
 ```
 
-### Development Environment (Hierarchical Topics)
+**Development Workflow** (Feature Branch):
 ```bash
 git checkout feature/hierarchical-topics
-.\setup_development.ps1  # Windows PowerShell
+.\setup_development.ps1  # Windows PowerShell (automated setup)
 # OR
 ./setup_development.sh   # Linux/Mac
 
-# Apply enhanced schema
-# Copy hierarchical_topics_schema.sql to Supabase SQL Editor and run
+# Apply enhanced schema to development database
+# Run hierarchical_topics_schema.sql in Supabase SQL Editor
 ```
 
-### Environment Configuration
-**Production** (`.env.production`):
+### 🔧 **Environment Configuration System**
+**Production Configuration** (`.env.production`):
 ```bash
 NEXT_PUBLIC_ENABLE_HIERARCHICAL_TOPICS=false
+NEXT_PUBLIC_ENABLE_AUTO_TOPIC_EXTRACTION=false
 NEXT_PUBLIC_DATABASE_SCHEMA_VERSION=1
-# Conservative settings for production stability
+NEXT_PUBLIC_HIERARCHICAL_TOPICS_PERCENTAGE=0
+# Conservative settings prioritizing stability
 ```
 
-**Development** (`.env.development`):
+**Development Configuration** (`.env.development`):
 ```bash
 NEXT_PUBLIC_ENABLE_HIERARCHICAL_TOPICS=true
 NEXT_PUBLIC_ENABLE_AUTO_TOPIC_EXTRACTION=true
 NEXT_PUBLIC_DATABASE_SCHEMA_VERSION=2
-# Enhanced features for testing
+NEXT_PUBLIC_ENABLE_DEBUG_MODE=true
+NEXT_PUBLIC_HIERARCHICAL_TOPICS_PERCENTAGE=100
+# Full feature access for testing and validation
 ```
 
-### Database Schema Setup
-**Phase 1** (Production): Apply `supabase-schema.sql`
-**Phase 2** (Development): Apply `hierarchical_topics_schema.sql` (additive)
+### 🗄️ **Database Schema Evolution**
+**Schema Version 1** (Production): `supabase-schema.sql` - Wide columns for auto-population
+**Schema Version 2** (Development): `hierarchical_topics_schema.sql` - Additive hierarchical tables
 
-### Feature Flag Controls
-- **Safe Development**: New features controlled by environment variables
-- **Gradual Rollout**: Percentage-based feature activation
-- **Instant Rollback**: Feature flags allow immediate disable
-- **Production Safety**: Conservative defaults with explicit opt-in
+### 🚩 **Feature Flag Safety System**
+- **Development Safety**: New features isolated to feature branch
+- **Production Protection**: Conservative defaults with explicit feature opt-in
+- **Gradual Rollout Support**: Percentage-based user activation for measured deployment
+- **Instant Rollback**: Environment variable changes disable features immediately
+- **Debug Controls**: Enhanced logging and extraction details in development mode
 
 ## 🎯 What You'll See Working
 
