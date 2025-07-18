@@ -5,6 +5,23 @@
 -- Enable UUID extension if not already enabled
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
+-- Core Documents Table (if it doesn't exist)
+CREATE TABLE IF NOT EXISTS documents (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title TEXT NOT NULL,
+    content TEXT,
+    content_type TEXT DEFAULT 'text',
+    file_name TEXT,
+    file_size INTEGER,
+    upload_date TIMESTAMPTZ DEFAULT NOW(),
+    processed BOOLEAN DEFAULT false,
+    processing_status TEXT DEFAULT 'pending',
+    metadata JSONB DEFAULT '{}',
+    business_tags TEXT[] DEFAULT '{}',
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Hierarchical Knowledge Topics Table
 CREATE TABLE IF NOT EXISTS knowledge_topics (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -81,6 +98,10 @@ CREATE TABLE IF NOT EXISTS topic_hierarchy_paths (
 );
 
 -- Performance Indexes
+CREATE INDEX IF NOT EXISTS idx_documents_business_tags ON documents USING GIN(business_tags);
+CREATE INDEX IF NOT EXISTS idx_documents_processed ON documents(processed);
+CREATE INDEX IF NOT EXISTS idx_documents_upload_date ON documents(upload_date DESC);
+
 CREATE INDEX IF NOT EXISTS idx_knowledge_topics_parent ON knowledge_topics(parent_topic_id);
 CREATE INDEX IF NOT EXISTS idx_knowledge_topics_path ON knowledge_topics(topic_path);
 CREATE INDEX IF NOT EXISTS idx_knowledge_topics_business_tags ON knowledge_topics USING GIN(business_tags);
